@@ -71,7 +71,29 @@ func (g GorillaMux) setAppHandlers(router *mux.Router) {
 	api.Handle("/accounts", g.buildActionStoreAccount()).Methods(http.MethodPost)
 	api.Handle("/accounts", g.buildActionIndexAccount()).Methods(http.MethodGet)
 
+	api.Handle("/accounts2", g.buildActionStoreAccount2()).Methods(http.MethodPost)
+
 	api.HandleFunc("/healthcheck", action.HealthCheck).Methods(http.MethodGet)
+}
+
+func (g GorillaMux) buildActionStoreAccount2() *negroni.Negroni {
+	var handler http.HandlerFunc = func(res http.ResponseWriter, req *http.Request) {
+		var (
+			accountRepository  = postgres.NewAccountRepository(g.db)
+			acc    = usecase.NewCreateAccountInteractor(accountRepository)
+		)
+
+
+		var transferAction = action.NewCreateAccount(acc, g.log, g.validator)
+
+		transferAction.Store(res, req)
+	}
+
+	return negroni.New(
+		negroni.HandlerFunc(middleware.NewLogger(g.log).Execute),
+		negroni.NewRecovery(),
+		negroni.Wrap(handler),
+	)
 }
 
 func (g GorillaMux) buildActionStoreTransfer() *negroni.Negroni {

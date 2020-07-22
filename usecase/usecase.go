@@ -12,3 +12,7 @@ type TransferUseCase interface {
 	Store(string, string, float64) (TransferOutput, error)
 	FindAll() ([]TransferOutput, error)
 }
+
+type CreateAccountUseCase interface {
+	Store(string, string, float64) (AccountOutput, error)
+}
